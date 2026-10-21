@@ -1,0 +1,25 @@
+CREATE TABLE lojas (
+    id UUID PRIMARY KEY,
+    razao_social VARCHAR(150) NOT NULL,
+    nome_fantasia VARCHAR(150) NOT NULL,
+    cnpj VARCHAR(14) NOT NULL,
+    ativo BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uk_lojas_cnpj UNIQUE (cnpj)
+);
+CREATE TABLE usuarios (
+    id UUID PRIMARY KEY,
+    loja_id UUID NOT NULL,
+    nome VARCHAR(100) NOT NULL,
+    email VARCHAR(150) NOT NULL,
+    senha_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(30) NOT NULL,
+    ativo BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_usuarios_loja FOREIGN KEY (loja_id) REFERENCES lojas(id) ON DELETE RESTRICT,
+    CONSTRAINT uk_usuarios_loja_email UNIQUE (loja_id, email)
+);
+
+CREATE INDEX idx_usuarios_loja_id ON usuarios(loja_id);

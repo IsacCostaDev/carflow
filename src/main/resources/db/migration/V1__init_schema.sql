@@ -3,11 +3,15 @@ CREATE TABLE lojas (
     razao_social VARCHAR(150) NOT NULL,
     nome_fantasia VARCHAR(150) NOT NULL,
     cnpj VARCHAR(14) NOT NULL,
+    telefone VARCHAR(20) NOT NULL,
+    slug VARCHAR(100) NOT NULL,
     ativo BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT uk_lojas_cnpj UNIQUE (cnpj)
+    CONSTRAINT uk_lojas_cnpj UNIQUE (cnpj),
+    CONSTRAINT uk_lojas_slug UNIQUE (slug)
 );
+
 CREATE TABLE usuarios (
     id UUID PRIMARY KEY,
     loja_id UUID NOT NULL,

@@ -8,15 +8,15 @@ Implementar a fundação relacional no PostgreSQL com versionamento de banco via
 ## 📦 Tarefas Detalhadas
 
 ### 1. Migração Flyway (`V1__init_schema.sql`)
-- [ ] Compreender o funcionamento do Flyway (`flyway_schema_history`) e por que o schema nunca é alterado via JPA em produção (`ddl-auto: validate`).
-- [ ] Escrever o DDL da tabela `lojas`:
+- [x] Compreender o funcionamento do Flyway (`flyway_schema_history`) e por que o schema nunca é alterado via JPA em produção (`ddl-auto: validate`).
+- [x] Escrever o DDL da tabela `lojas`:
   - `id` (UUID v7, PK)
   - `razao_social` (VARCHAR 150)
   - `nome_fantasia` (VARCHAR 150)
   - `cnpj` (VARCHAR 14 UNIQUE)
   - `ativo` (BOOLEAN DEFAULT true)
   - `created_at`, `updated_at` (TIMESTAMPTZ)
-- [ ] Escrever o DDL da tabela `usuarios`:
+- [x] Escrever o DDL da tabela `usuarios`:
   - `id` (UUID v7, PK)
   - `loja_id` (UUID v7, FK -> lojas.id)
   - `nome` (VARCHAR 100)
@@ -26,14 +26,14 @@ Implementar a fundação relacional no PostgreSQL com versionamento de banco via
   - Chave única composta: `UNIQUE(loja_id, email)` (o mesmo e-mail pode existir em lojas diferentes, mas não duplicado na mesma loja).
 
 ### 2. Entidades de Domínio JPA
-- [ ] Criar o pacote `com.isaccosta.carflow.tenant` (Package-by-Feature).
-- [ ] Criar a entidade JPA `Loja` com geração automática de UUID v7.
-- [ ] Criar a entidade JPA `Usuario` com `@TenantId` do Hibernate 6.
-- [ ] Criar os repositórios `LojaRepository` e `UsuarioRepository` estendendo `JpaRepository`.
+- [x] Criar o pacote `com.isaccosta.carflow.tenant` (Package-by-Feature).
+- [x] Criar a entidade JPA `Loja` com geração automática de UUID v7.
+- [x] Criar a entidade JPA `Usuario` com `@TenantId` do Hibernate 6.
+- [x] Criar os repositórios `LojaRepository` e `UsuarioRepository` estendendo `JpaRepository`.
 
 ### 3. Teste de Integração Real com Testcontainers
-- [ ] Configurar Testcontainers para subir um PostgreSQL 16 efêmero no teste.
-- [ ] Escrever o primeiro teste de integração que valida a execução das migrações do Flyway e o salvamento de uma Loja.
+- [x] Configurar Testcontainers para subir um PostgreSQL 16 efêmero no teste.
+- [x] Escrever o primeiro teste de integração que valida a execução das migrações do Flyway e o salvamento de uma Loja.
 
 ---
 

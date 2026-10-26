@@ -27,112 +27,101 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
 
-    @Mock
-    private UsuarioRepository usuarioRepository;
+        @Mock
+        private UsuarioRepository usuarioRepository;
 
-    @Mock
-    private PasswordEncoder passwordEncoder;
+        @Mock
+        private PasswordEncoder passwordEncoder;
 
-    @Mock
-    private JwtService jwtService;
+        @Mock
+        private JwtService jwtService;
 
-    @InjectMocks
-    private AuthService authService;
+        @InjectMocks
+        private AuthService authService;
 
-    private Usuario usuarioValido;
+        private Usuario validUser;
 
-    @BeforeEach
-    void setUp() {
-        // Injeta o valor da propriedade de expiração que normalmente viria do
-        // application.yml
-        ReflectionTestUtils.setField(authService, "accessTokenExpirationMs", 900000L);
+        @BeforeEach
+        void setUp() {
+                ReflectionTestUtils.setField(authService, "accessTokenExpirationMs", 900000L);
 
-        usuarioValido = Usuario.builder()
-                .id(UUID.randomUUID())
-                .lojaId(UUID.randomUUID())
-                .nome("Isac Costa")
-                .email("isac@carflow.com")
-                .senhaHash("$2a$10$hashSimuladoDoBcrypt")
-                .role(Role.DONO)
-                .ativo(true)
-                .build();
-    }
+                validUser = Usuario.builder()
+                                .id(UUID.randomUUID())
+                                .lojaId(UUID.randomUUID())
+                                .nome("Isac Costa")
+                                .email("isac@carflow.com")
+                                .senhaHash("$2a$10$hashSimuladoDoBcrypt")
+                                .role(Role.DONO)
+                                .ativo(true)
+                                .build();
+        }
 
-    @Test
-    @DisplayName("Deve autenticar com sucesso quando as credenciais forem válidas")
-    void deveAutenticarComSucesso() {
-        // 1. Cenário (Given)
-        LoginRequest request = new LoginRequest("isac@carflow.com", "SenhaCorreta@123");
+        @Test
+        @DisplayName("Deve autenticar com sucesso quando as credenciais forem válidas")
+        void shouldAuthenticateSuccessfully() {
+                LoginRequest request = new LoginRequest("isac@carflow.com", "SenhaCorreta@123");
 
-        when(usuarioRepository.findByEmailIgnoringTenant("isac@carflow.com"))
-                .thenReturn(Optional.of(usuarioValido));
+                when(usuarioRepository.findByEmailIgnoringTenant("isac@carflow.com"))
+                                .thenReturn(Optional.of(validUser));
 
-        when(passwordEncoder.matches("SenhaCorreta@123", usuarioValido.getSenhaHash()))
-                .thenReturn(true);
+                when(passwordEncoder.matches("SenhaCorreta@123", validUser.getSenhaHash()))
+                                .thenReturn(true);
 
-        when(jwtService.generateAccessToken(usuarioValido))
-                .thenReturn("access-token-simulado");
+                when(jwtService.generateAccessToken(validUser))
+                                .thenReturn("access-token-simulado");
 
-        when(jwtService.generateRefreshToken(usuarioValido))
-                .thenReturn("refresh-token-simulado");
+                when(jwtService.generateRefreshToken(validUser))
+                                .thenReturn("refresh-token-simulado");
 
-        // 2. Ação (When)
-        AuthResponse response = authService.login(request);
+                AuthResponse response = authService.login(request);
 
-        // 3. Validação (Then)
-        assertThat(response).isNotNull();
-        assertThat(response.accessToken()).isEqualTo("access-token-simulado");
-        assertThat(response.refreshToken()).isEqualTo("refresh-token-simulado");
-        assertThat(response.tokenType()).isEqualTo("Bearer");
-        assertThat(response.expiresIn()).isEqualTo(900L);
-    }
+                assertThat(response).isNotNull();
+                assertThat(response.accessToken()).isEqualTo("access-token-simulado");
+                assertThat(response.refreshToken()).isEqualTo("refresh-token-simulado");
+                assertThat(response.tokenType()).isEqualTo("Bearer");
+                assertThat(response.expiresIn()).isEqualTo(900L);
+        }
 
-    @Test
-    @DisplayName("Deve lançar BadCredentialsException quando a senha estiver incorreta")
-    void deveFalharQuandoSenhaIncorreta() {
-        // 1. Cenário (Given)
-        LoginRequest request = new LoginRequest("isac@carflow.com", "SenhaErrada");
+        @Test
+        @DisplayName("Deve lançar BadCredentialsException quando a senha estiver incorreta")
+        void shouldFailWhenPasswordIsIncorrect() {
+                LoginRequest request = new LoginRequest("isac@carflow.com", "SenhaErrada");
 
-        when(usuarioRepository.findByEmailIgnoringTenant("isac@carflow.com"))
-                .thenReturn(Optional.of(usuarioValido));
+                when(usuarioRepository.findByEmailIgnoringTenant("isac@carflow.com"))
+                                .thenReturn(Optional.of(validUser));
 
-        when(passwordEncoder.matches("SenhaErrada", usuarioValido.getSenhaHash()))
-                .thenReturn(false);
+                when(passwordEncoder.matches("SenhaErrada", validUser.getSenhaHash()))
+                                .thenReturn(false);
 
-        // 2 e 3. Ação e Validação (When & Then)
-        assertThatThrownBy(() -> authService.login(request))
-                .isInstanceOf(BadCredentialsException.class)
-                .hasMessage("Credenciais inválidas");
-    }
+                assertThatThrownBy(() -> authService.login(request))
+                                .isInstanceOf(BadCredentialsException.class)
+                                .hasMessage("Credenciais inválidas");
+        }
 
-    @Test
-    @DisplayName("Deve lançar BadCredentialsException quando o usuário não existir")
-    void deveFalharQuandoUsuarioNaoExistir() {
-        // 1. Cenário (Given)
-        LoginRequest request = new LoginRequest("inexistente@carflow.com", "123456");
+        @Test
+        @DisplayName("Deve lançar BadCredentialsException quando o usuário não existir")
+        void shouldFailWhenUserDoesNotExist() {
+                LoginRequest request = new LoginRequest("inexistente@carflow.com", "123456");
 
-        when(usuarioRepository.findByEmailIgnoringTenant(anyString()))
-                .thenReturn(Optional.empty());
+                when(usuarioRepository.findByEmailIgnoringTenant(anyString()))
+                                .thenReturn(Optional.empty());
 
-        // 2 e 3. Ação e Validação (When & Then)
-        assertThatThrownBy(() -> authService.login(request))
-                .isInstanceOf(BadCredentialsException.class)
-                .hasMessage("Credenciais inválidas");
-    }
+                assertThatThrownBy(() -> authService.login(request))
+                                .isInstanceOf(BadCredentialsException.class)
+                                .hasMessage("Credenciais inválidas");
+        }
 
-    @Test
-    @DisplayName("Deve lançar BadCredentialsException quando o usuário estiver inativo")
-    void deveFalharQuandoUsuarioInativo() {
-        // 1. Cenário (Given)
-        usuarioValido.setAtivo(false);
-        LoginRequest request = new LoginRequest("isac@carflow.com", "SenhaCorreta@123");
+        @Test
+        @DisplayName("Deve lançar BadCredentialsException quando o usuário estiver inativo")
+        void shouldFailWhenUserIsInactive() {
+                validUser.setAtivo(false);
+                LoginRequest request = new LoginRequest("isac@carflow.com", "SenhaCorreta@123");
 
-        when(usuarioRepository.findByEmailIgnoringTenant("isac@carflow.com"))
-                .thenReturn(Optional.of(usuarioValido));
+                when(usuarioRepository.findByEmailIgnoringTenant("isac@carflow.com"))
+                                .thenReturn(Optional.of(validUser));
 
-        // 2 e 3. Ação e Validação (When & Then)
-        assertThatThrownBy(() -> authService.login(request))
-                .isInstanceOf(BadCredentialsException.class)
-                .hasMessage("Credenciais inválidas");
-    }
+                assertThatThrownBy(() -> authService.login(request))
+                                .isInstanceOf(BadCredentialsException.class)
+                                .hasMessage("Credenciais inválidas");
+        }
 }

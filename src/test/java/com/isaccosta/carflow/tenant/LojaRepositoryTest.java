@@ -31,8 +31,7 @@ class LojaRepositoryTest {
 
     @Test
     @DisplayName("Deve persistir uma Loja com UUID v7 e timestamps gerados via Flyway e JPA")
-    void devePersistirLojaComSucesso() {
-        // 1. Cenário (Given)
+    void shouldPersistLojaSuccessfully() {
         Loja novaLoja = Loja.builder()
                 .razaoSocial("Auto Motors Comercio de Veiculos Ltda")
                 .nomeFantasia("Auto Motors")
@@ -41,21 +40,17 @@ class LojaRepositoryTest {
                 .slug("auto-motors")
                 .build();
 
-        // 2. Ação (When)
         Loja lojaSalva = lojaRepository.save(novaLoja);
 
-        // 3. Validação (Then)
         assertThat(lojaSalva.getId()).isNotNull();
         assertThat(lojaSalva.getCreatedAt()).isNotNull();
         assertThat(lojaSalva.getUpdatedAt()).isNotNull();
         assertThat(lojaSalva.isAtivo()).isTrue();
 
-        // Busca pelo slug da vitrine pública
         Optional<Loja> lojaEncontrada = lojaRepository.findBySlug("auto-motors");
         assertThat(lojaEncontrada).isPresent();
         assertThat(lojaEncontrada.get().getNomeFantasia()).isEqualTo("Auto Motors");
 
-        // Validação das consultas de existência (existsBy)
         assertThat(lojaRepository.existsByCnpj("12345678000199")).isTrue();
         assertThat(lojaRepository.existsBySlug("auto-motors")).isTrue();
         assertThat(lojaRepository.existsBySlug("loja-inexistente")).isFalse();

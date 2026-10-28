@@ -73,15 +73,10 @@ public class Loja {
         this.updatedAt = Instant.now();
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-        Loja loja = (Loja) o;
-        return id != null && Objects.equals(id, loja.id);
-    }
+    // Em Loja.java e Usuario.java:
+    if(!(o instanceof
+
+    Loja other))return false;return id!=null&&Objects.equals(id,other.id);
 
     @Override
     public int hashCode() {

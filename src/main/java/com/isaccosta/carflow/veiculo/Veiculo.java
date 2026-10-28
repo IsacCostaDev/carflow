@@ -35,6 +35,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+
 public class Veiculo {
 
     @Id
@@ -133,20 +134,27 @@ public class Veiculo {
     public void transitionTo(StatusVeiculo newStatus) {
         if (this.status == null || !this.status.canTransitionTo(newStatus)) {
             throw new IllegalStateException(
-                    String.format("Transição de status inválida: não é permitido alterar de %s para %s.", this.status,
+                    "Transição de status inválida: não é permitido alterar de %s para %s.".formatted(this.status,
                             newStatus));
         }
         this.status = newStatus;
+    }
+
+    public void addOpcional(Opcional opcional) {
+        this.opcionais.add(opcional);
+    }
+
+    public void removeOpcional(Opcional opcional) {
+        this.opcionais.remove(opcional);
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o)
             return true;
-        if (o == null || getClass() != o.getClass())
+        if (!(o instanceof Veiculo other))
             return false;
-        Veiculo veiculo = (Veiculo) o;
-        return id != null && Objects.equals(id, veiculo.id);
+        return id != null && Objects.equals(id, other.id);
     }
 
     @Override

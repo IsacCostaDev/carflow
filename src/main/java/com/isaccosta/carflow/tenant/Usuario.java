@@ -82,10 +82,9 @@ public class Usuario {
     public boolean equals(Object o) {
         if (this == o)
             return true;
-        if (o == null || getClass() != o.getClass())
+        if (!(o instanceof Usuario other))
             return false;
-        Usuario usuario = (Usuario) o;
-        return id != null && Objects.equals(id, usuario.id);
+        return id != null && Objects.equals(id, other.id);
     }
 
     @Override

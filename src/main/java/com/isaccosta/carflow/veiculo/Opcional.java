@@ -43,10 +43,9 @@ public class Opcional {
     public boolean equals(Object o) {
         if (this == o)
             return true;
-        if (o == null || getClass() != o.getClass())
+        if (!(o instanceof Opcional other))
             return false;
-        Opcional opcional = (Opcional) o;
-        return id != null && Objects.equals(id, opcional.id);
+        return id != null && Objects.equals(id, other.id);
     }
 
     @Override

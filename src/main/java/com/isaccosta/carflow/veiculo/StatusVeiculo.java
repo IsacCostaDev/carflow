@@ -1,37 +1,21 @@
 package com.isaccosta.carflow.veiculo;
 
-import java.util.Set;
-
 public enum StatusVeiculo {
 
-    EM_PREPARACAO {
-        @Override
-        public boolean canTransitionTo(StatusVeiculo newStatus) {
-            return Set.of(DISPONIVEL).contains(newStatus);
-        }
-    },
+    EM_PREPARACAO,
+    DISPONIVEL,
+    RESERVADO,
+    VENDIDO;
 
-    DISPONIVEL {
-        @Override
-        public boolean canTransitionTo(StatusVeiculo newStatus) {
-            return Set.of(RESERVADO, VENDIDO, EM_PREPARACAO).contains(newStatus);
-        }
-    },
-
-    RESERVADO {
-        @Override
-        public boolean canTransitionTo(StatusVeiculo newStatus) {
-            return Set.of(DISPONIVEL, VENDIDO).contains(newStatus);
-        }
-    },
-
-    VENDIDO {
-        @Override
-        public boolean canTransitionTo(StatusVeiculo newStatus) {
-            // Estado terminal: nenhuma transição permitida
+    public boolean canTransitionTo(StatusVeiculo newStatus) {
+        if (newStatus == null) {
             return false;
         }
-    };
-
-    public abstract boolean canTransitionTo(StatusVeiculo newStatus);
+        return switch (this) {
+            case EM_PREPARACAO -> newStatus == DISPONIVEL;
+            case DISPONIVEL -> newStatus == RESERVADO || newStatus == VENDIDO || newStatus == EM_PREPARACAO;
+            case RESERVADO -> newStatus == DISPONIVEL || newStatus == VENDIDO;
+            case VENDIDO -> false;
+        };
+    }
 }

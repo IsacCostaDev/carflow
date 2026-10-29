@@ -116,6 +116,11 @@ public class Veiculo {
         if (this.id == null) {
             this.id = IdGenerator.v7();
         }
+
+        if (this.lojaId == null) {
+            this.lojaId = com.isaccosta.carflow.tenant.TenantContext.getTenantId();
+        }
+
         Instant now = Instant.now();
         if (this.createdAt == null) {
             this.createdAt = now;

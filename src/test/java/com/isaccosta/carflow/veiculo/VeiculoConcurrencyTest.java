@@ -101,35 +101,19 @@ class VeiculoConcurrencyTest {
     @DisplayName("Deve impedir atualização concorrente disparando OptimisticLockingFailureException")
     void shouldPreventConcurrentModificationWithOptimisticLocking() {
         TenantContext.setTenantId(loja.getId());
-
-        // 1. Veículo é cadastrado com version = 0
         Veiculo veiculoSalvo = veiculoRepository.save(buildVeiculo());
         UUID veiculoId = veiculoSalvo.getId();
         assertThat(veiculoSalvo.getVersion()).isEqualTo(0L);
-
-        // 2. Vendedor 1 e Vendedor 2 carregam o mesmo veículo simultaneamente (ambos
-        // com version = 0)
         Veiculo sessaoVendedor1 = veiculoRepository.findById(veiculoId).orElseThrow();
         Veiculo sessaoVendedor2 = veiculoRepository.findById(veiculoId).orElseThrow();
-
         assertThat(sessaoVendedor1.getVersion()).isEqualTo(0L);
         assertThat(sessaoVendedor2.getVersion()).isEqualTo(0L);
-
-        // 3. Vendedor 1 reserva o carro primeiro e comita com sucesso:
         sessaoVendedor1.transitionTo(StatusVeiculo.RESERVADO);
         veiculoRepository.saveAndFlush(sessaoVendedor1);
-
-        // A versão no PostgreSQL subiu para 1!
         Veiculo noBancoAposVendedor1 = veiculoRepository.findById(veiculoId).orElseThrow();
         assertThat(noBancoAposVendedor1.getVersion()).isEqualTo(1L);
         assertThat(noBancoAposVendedor1.getStatus()).isEqualTo(StatusVeiculo.RESERVADO);
-
-        // 4. Vendedor 2 tenta vender o carro usando sua tela desatualizada (que ainda
-        // tem version = 0):
         sessaoVendedor2.transitionTo(StatusVeiculo.VENDIDO);
-
-        // O Hibernate detecta que a versão no banco é 1 e a da entidade é 0 -> Dispara
-        // OptimisticLockingFailureException!
         assertThatThrownBy(() -> veiculoRepository.saveAndFlush(sessaoVendedor2))
                 .isInstanceOf(OptimisticLockingFailureException.class);
     }
@@ -140,16 +124,13 @@ class VeiculoConcurrencyTest {
         TenantContext.setTenantId(loja.getId());
         Veiculo veiculo = veiculoRepository.save(buildVeiculo());
         UUID veiculoId = veiculo.getId();
-
         AtomicInteger sucessos = new AtomicInteger(0);
         AtomicInteger conflitos = new AtomicInteger(0);
-
-        // Thread 1: Vendedor A
         CompletableFuture<Void> tarefaVendedorA = CompletableFuture.runAsync(() -> {
             try {
                 TenantContext.setTenantId(loja.getId());
                 Veiculo v = veiculoRepository.findById(veiculoId).orElseThrow();
-                Thread.sleep(50); // Simula uma leve latência
+                Thread.sleep(50);
                 v.transitionTo(StatusVeiculo.RESERVADO);
                 veiculoRepository.saveAndFlush(v);
                 sucessos.incrementAndGet();
@@ -158,13 +139,11 @@ class VeiculoConcurrencyTest {
             } catch (Exception ignored) {
             }
         });
-
-        // Thread 2: Vendedor B
         CompletableFuture<Void> tarefaVendedorB = CompletableFuture.runAsync(() -> {
             try {
                 TenantContext.setTenantId(loja.getId());
                 Veiculo v = veiculoRepository.findById(veiculoId).orElseThrow();
-                Thread.sleep(50); // Simula a mesma latência
+                Thread.sleep(50);
                 v.transitionTo(StatusVeiculo.VENDIDO);
                 veiculoRepository.saveAndFlush(v);
                 sucessos.incrementAndGet();
@@ -173,16 +152,9 @@ class VeiculoConcurrencyTest {
             } catch (Exception ignored) {
             }
         });
-
-        // Aguarda as duas threads terminarem
         CompletableFuture.allOf(tarefaVendedorA, tarefaVendedorB).join();
-
-        // Prova matemática de concorrência: apenas 1 conseguiu salvar, a outra tomou
-        // OptimisticLockingFailureException!
         assertThat(sucessos.get()).isEqualTo(1);
         assertThat(conflitos.get()).isEqualTo(1);
-
-        // O banco terminou em estado consistente (version = 1)
         Veiculo estadoFinal = veiculoRepository.findById(veiculoId).orElseThrow();
         assertThat(estadoFinal.getVersion()).isEqualTo(1L);
     }

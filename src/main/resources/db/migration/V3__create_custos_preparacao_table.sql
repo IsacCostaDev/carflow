@@ -10,7 +10,7 @@ CREATE TABLE custos_preparacao (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_custos_preparacao_loja FOREIGN KEY (loja_id) REFERENCES lojas(id) ON DELETE RESTRICT,
     CONSTRAINT fk_custos_preparacao_veiculo FOREIGN KEY (veiculo_id) REFERENCES veiculos(id) ON DELETE CASCADE
-);\
+);
 
 CREATE INDEX idx_custos_preparacao_loja_id ON custos_preparacao(loja_id);
 CREATE INDEX idx_custos_preparacao_veiculo_id ON custos_preparacao(veiculo_id);
